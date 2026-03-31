@@ -79,30 +79,31 @@ export default function PlaceCard({ place, variant = "default" }: PlaceCardProps
           {place.openNow ? `Mo · den ${place.closingTime}` : "Da dong"}
         </div>
       </div>
-      <div className="p-3">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-foreground">{place.name}</h3>
-          <span className="flex-shrink-0 text-sm font-semibold text-primary">{place.priceRange}</span>
+      <div className="space-y-2 p-3">
+        <h3 className="line-clamp-1 font-semibold text-foreground">{place.name}</h3>
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <MapPin className="h-3 w-3 flex-shrink-0" />
+          <span className="line-clamp-1">{place.address}</span>
         </div>
-        <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="h-3 w-3" />
-          <span className="truncate">
-            {place.distance} · {place.address}
-          </span>
-        </div>
-        <div className="mt-2 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm">
           <div className="flex items-center gap-1">
             <Star className="h-3.5 w-3.5 fill-star text-star" />
-            <span className="text-sm font-semibold">{place.rating}</span>
-            <span className="text-xs text-muted-foreground">({place.reviewCount} danh gia)</span>
+            <span className="font-semibold text-foreground">{place.rating}</span>
           </div>
-          <div className="flex gap-1">
-            {place.tags.slice(0, 2).map((tag) => (
-              <span key={tag} className="rounded-full bg-tea-50 px-2 py-0.5 text-[10px] font-medium text-tea-600">
-                {tag}
-              </span>
-            ))}
-          </div>
+          <span className="text-muted-foreground">•</span>
+          <span className="font-semibold text-primary">{place.priceRange}</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {place.tags.slice(0, 3).map((tag) => (
+            <span key={tag} className="rounded-full bg-tea-50 px-2 py-0.5 text-[10px] font-medium text-tea-600">
+              {tag}
+            </span>
+          ))}
+          {place.reviewCount > 0 ? (
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              {place.reviewCount} danh gia
+            </span>
+          ) : null}
         </div>
       </div>
     </button>

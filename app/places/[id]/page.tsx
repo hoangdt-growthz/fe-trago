@@ -21,6 +21,7 @@ type PlaceDetail = {
   latitude: number | null;
   longitude: number | null;
   category: { name: string } | null;
+  tags: { tag: { name: string } }[];
 };
 
 async function getPlace(id: string): Promise<{ item: PlaceDetail | null; apiOk: boolean }> {
@@ -78,6 +79,16 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ id
         <CardContent className="space-y-3 p-5">
           <h1 className="text-2xl font-semibold text-neutral-900">{place.name}</h1>
           <p className="text-sm text-neutral-600">{place.typeRaw ?? "Local destination"}</p>
+
+          {place.tags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {place.tags.slice(0, 5).map((entry) => (
+                <span key={entry.tag.name} className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-neutral-700">
+                  {entry.tag.name}
+                </span>
+              ))}
+            </div>
+          ) : null}
 
           <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
             <div className="rounded-2xl bg-muted p-2">

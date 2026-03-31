@@ -137,10 +137,12 @@ export async function fetchPlaces(params?: { limit?: number; category?: string; 
 }
 
 export async function getHomePlaces(): Promise<{ nearby: Place[]; popular: Place[]; apiOk: boolean }> {
-  const result = await fetchPlaces({ limit: 8 });
+  const result = await fetchPlaces({ limit: 16 });
+  const preferred = result.items.filter((item) => ["cafe", "food", "tea", "bakery", "sight", "spa", "bar"].includes(item.category));
+  const source = preferred.length > 0 ? preferred : result.items;
   return {
-    nearby: result.items.slice(0, 4),
-    popular: result.items.slice(0, 6),
+    nearby: source.slice(0, 4),
+    popular: source.slice(0, 6),
     apiOk: result.apiOk
   };
 }
