@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 90 20% 98%;
+  --foreground: 150 10% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 150 10% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 150 10% 15%;
+  --primary: 145 45% 35%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 90 25% 94%;
+  --secondary-foreground: 150 10% 15%;
+  --muted: 90 15% 93%;
+  --muted-foreground: 150 5% 45%;
+  --accent: 35 85% 55%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 90 15% 90%;
+  --input: 90 15% 90%;
+  --ring: 145 45% 35%;
+  --radius: 0.75rem;
+  --tea-50: 145 40% 96%;
+  --tea-100: 145 38% 90%;
+  --tea-200: 145 36% 80%;
+  --tea-500: 145 45% 35%;
+  --tea-600: 145 50% 28%;
+  --tea-700: 145 55% 22%;
+  --warm-50: 35 60% 97%;
+  --warm-100: 35 50% 92%;
+  --warm-400: 35 85% 55%;
+  --warm-500: 30 80% 48%;
+  --star: 45 93% 55%;
+  --badge-ai: 260 60% 55%;
+  --shadow-card: 0 2px 12px -2px hsl(150 10% 15% / 0.06);
+  --shadow-card-hover: 0 8px 24px -4px hsl(150 10% 15% / 0.1);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+}
+
+body {
+  @apply bg-background text-foreground font-sans antialiased;
+  font-family: "Be Vietnam Pro", system-ui, sans-serif;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-enter {
+  animation: rise-in 0.45s ease forwards;
+  opacity: 0;
+}
+
+.soft-panel {
+  border: 1px solid hsl(var(--border));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 250, 244, 0.96) 100%);
+  box-shadow: 0 8px 26px rgba(145, 95, 56, 0.08);
+}
+
+.app-shell {
+  background:
+    radial-gradient(circle at top left, hsl(var(--warm-50)) 0, transparent 32%),
+    linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--tea-50)) 100%);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
