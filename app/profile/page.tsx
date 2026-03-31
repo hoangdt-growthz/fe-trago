@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Bell, ChevronRight, Clock, Heart, HelpCircle, LogOut, MapPin, Settings, Shield, Star } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BottomNav from "@/components/bottom-nav";
 import { useRouter } from "next/navigation";
+import { fetchPlaces } from "@/lib/discovery-api";
+import { getSavedPlaceIds, getSearchHistory } from "@/lib/user-state";
 
 const menuItems = [
   { icon: Clock, label: "Lich su tim kiem", path: "/search-history" },
@@ -14,14 +17,30 @@ const menuItems = [
   { icon: HelpCircle, label: "Tro giup va ho tro", path: "#" }
 ];
 
-const stats = [
-  { value: "12", label: "Da luu" },
-  { value: "8", label: "Danh gia" },
-  { value: "24", label: "Da ghe" }
-];
-
 export default function ProfilePage() {
   const router = useRouter();
+  const [stats, setStats] = useState([
+    { value: "0", label: "Da luu" },
+    { value: "0", label: "Tim kiem" },
+    { value: "0", label: "Dia diem live" }
+  ]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchPlaces({ limit: 1 }).then((result) => {
+      if (cancelled) return;
+      setStats([
+        { value: String(getSavedPlaceIds().length), label: "Da luu" },
+        { value: String(getSearchHistory().length), label: "Tim kiem" },
+        { value: String(result.total), label: "Dia diem live" }
+      ]);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="app-shell min-h-screen pb-20">

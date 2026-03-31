@@ -1,28 +1,64 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "@/components/search-bar";
 import PlaceCard from "@/components/place-card";
 import BottomNav from "@/components/bottom-nav";
-import { categories, places } from "@/lib/mock-data";
+import { categories, places, type Place } from "@/lib/mock-data";
+import { fetchPlaces, getFallbackCategories, type DiscoveryCategory } from "@/lib/discovery-api";
 import { cn } from "@/lib/utils";
 
 export default function ListingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeCategory, setActiveCategory] = useState<string | null>(searchParams.get("category"));
+  const [items, setItems] = useState<Place[]>(places);
+  const [total, setTotal] = useState<number>(places.length);
+  const [uiCategories, setUiCategories] = useState<DiscoveryCategory[]>(getFallbackCategories());
+  const [loading, setLoading] = useState(true);
 
-  const query = searchParams.get("q")?.trim().toLowerCase() ?? "";
+  const query = searchParams.get("q")?.trim() ?? "";
 
-  const filtered = useMemo(() => {
-    return places.filter((place) => {
-      const matchCategory = activeCategory ? place.category === activeCategory : true;
-      const haystack = `${place.name} ${place.address} ${place.tags.join(" ")}`.toLowerCase();
-      const matchQuery = query ? haystack.includes(query) : true;
-      return matchCategory && matchQuery;
-    });
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      const result = await fetchPlaces({ limit: 50, category: activeCategory ?? undefined, q: query || undefined });
+      if (cancelled) return;
+
+      if (result.apiOk && result.items.length > 0) {
+        setItems(result.items);
+        setTotal(result.total);
+        const fallbackCategories = getFallbackCategories();
+        const nextCategories = Array.from(new Set(result.items.map((item) => item.category))).map((id) => ({
+          id,
+          label: fallbackCategories.find((entry) => entry.id === id)?.label ?? id,
+          icon: fallbackCategories.find((entry) => entry.id === id)?.icon ?? "📍"
+        }));
+        setUiCategories(nextCategories.length > 0 ? nextCategories : fallbackCategories);
+      } else {
+        const normalizedQuery = query.toLowerCase();
+        const filtered = places.filter((place) => {
+          const matchCategory = activeCategory ? place.category === activeCategory : true;
+          const haystack = `${place.name} ${place.address} ${place.tags.join(" ")}`.toLowerCase();
+          const matchQuery = normalizedQuery ? haystack.includes(normalizedQuery) : true;
+          return matchCategory && matchQuery;
+        });
+        setItems(filtered);
+        setTotal(filtered.length);
+        setUiCategories(getFallbackCategories());
+      }
+
+      setLoading(false);
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [activeCategory, query]);
 
   return (
@@ -46,7 +82,7 @@ export default function ListingPage() {
             >
               Tat ca
             </button>
-            {categories.map((category) => (
+            {(uiCategories.length > 0 ? uiCategories : categories).map((category) => (
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
@@ -63,9 +99,9 @@ export default function ListingPage() {
       </div>
 
       <div className="mx-auto max-w-lg px-4 pt-4">
-        <p className="mb-3 text-xs text-muted-foreground">{filtered.length} ket qua</p>
+        <p className="mb-3 text-xs text-muted-foreground">{loading ? "Dang tai..." : `${total} ket qua`}</p>
         <div className="grid gap-3">
-          {filtered.map((place, index) => (
+          {items.map((place, index) => (
             <div
               key={place.id}
               className="animate-fade-up"

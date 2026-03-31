@@ -12,11 +12,12 @@ interface PlaceCardProps {
 
 export default function PlaceCard({ place, variant = "default" }: PlaceCardProps) {
   const router = useRouter();
+  const href = `/places/${place.id}`;
 
   if (variant === "horizontal") {
     return (
       <button
-        onClick={() => router.push(`/detail/${place.id}`)}
+        onClick={() => router.push(href)}
         className="flex w-full gap-3 rounded-xl bg-card p-3 text-left shadow-card transition-shadow hover:shadow-card-hover"
       >
         <img src={place.image} alt={place.name} className="h-20 w-20 flex-shrink-0 rounded-lg object-cover" />
@@ -45,7 +46,7 @@ export default function PlaceCard({ place, variant = "default" }: PlaceCardProps
 
   if (variant === "compact") {
     return (
-      <button onClick={() => router.push(`/detail/${place.id}`)} className="w-36 flex-shrink-0 text-left">
+      <button onClick={() => router.push(href)} className="w-36 flex-shrink-0 text-left">
         <img src={place.image} alt={place.name} className="h-24 w-full rounded-xl object-cover" />
         <h3 className="mt-1.5 truncate text-sm font-semibold text-foreground">{place.name}</h3>
         <div className="flex items-center gap-1">
@@ -59,7 +60,7 @@ export default function PlaceCard({ place, variant = "default" }: PlaceCardProps
 
   return (
     <button
-      onClick={() => router.push(`/detail/${place.id}`)}
+      onClick={() => router.push(href)}
       className="group w-full overflow-hidden rounded-2xl bg-card text-left shadow-card transition-shadow hover:shadow-card-hover"
     >
       <div className="relative">

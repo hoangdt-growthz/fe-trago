@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { addSearchHistory } from "@/lib/user-state";
 
 interface SearchBarProps {
   defaultValue?: string;
@@ -19,6 +20,7 @@ export default function SearchBar({
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const value = query.trim();
+    if (value) addSearchHistory(value);
     router.push(value ? `/listing?q=${encodeURIComponent(value)}` : "/listing");
   }
 

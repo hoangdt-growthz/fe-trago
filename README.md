@@ -31,7 +31,7 @@ NEXT_PUBLIC_API_BASE=https://trago.nissihub.vn
 
 ## Deploy
 
-This repo is intended to be connected directly to Vercel.
+This repo is connected directly to Vercel.
 
 - Framework preset: `Next.js`
 - Install command: `bun install`

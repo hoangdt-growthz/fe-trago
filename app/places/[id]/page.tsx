@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "../../../components/ui/button";
 import { Card, CardContent } from "../../../components/ui/card";
+import PlaceDetailActions from "../../../components/place-detail-actions";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:4000";
 
@@ -119,9 +120,7 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ id
                 Map unavailable
               </Button>
             )}
-            <Button variant="outline" className="flex-1">
-              Save
-            </Button>
+            <PlaceDetailActions placeId={place.id} />
           </div>
         </CardContent>
       </Card>

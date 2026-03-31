@@ -3,10 +3,12 @@ import SearchBar from "@/components/search-bar";
 import PlaceCard from "@/components/place-card";
 import BottomNav from "@/components/bottom-nav";
 import { categories, places } from "@/lib/mock-data";
+import { getCategoryIcon, getHomePlaces } from "@/lib/discovery-api";
 
-export default function HomePage() {
-  const nearby = places.slice(0, 3);
-  const popular = places.slice(2, 6);
+export default async function HomePage() {
+  const { nearby: apiNearby, popular: apiPopular, apiOk } = await getHomePlaces();
+  const nearby = apiOk && apiNearby.length > 0 ? apiNearby : places.slice(0, 4);
+  const popular = apiOk && apiPopular.length > 0 ? apiPopular : places.slice(2, 6);
 
   return (
     <div className="app-shell min-h-screen pb-20">
@@ -37,7 +39,7 @@ export default function HomePage() {
                 href={`/listing?category=${category.id}`}
                 className="flex flex-shrink-0 flex-col items-center gap-1.5 rounded-xl bg-card px-4 py-3 shadow-card transition-shadow hover:shadow-card-hover"
               >
-                <span className="text-2xl">{category.icon}</span>
+                <span className="text-2xl">{getCategoryIcon(category.id) || category.icon}</span>
                 <span className="text-xs font-medium text-foreground">{category.label}</span>
               </a>
             ))}
@@ -65,7 +67,7 @@ export default function HomePage() {
               Xem tat ca <ChevronRight className="h-3.5 w-3.5" />
             </a>
           </div>
-          <div className="mt-3 grid gap-3">
+          <div className="mt-3 grid grid-cols-2 gap-3">
             {popular.map((place, index) => (
               <div
                 key={place.id}

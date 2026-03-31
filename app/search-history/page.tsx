@@ -1,24 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Clock, Search, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/bottom-nav";
 import PlaceCard from "@/components/place-card";
-import { places } from "@/lib/mock-data";
-
-const initialHistory = [
-  { id: "1", query: "Ca phe view dep", timestamp: "Hom nay, 10:30" },
-  { id: "2", query: "Pho Ha Noi", timestamp: "Hom nay, 08:15" },
-  { id: "3", query: "Quan an gan day", timestamp: "Hom qua, 19:00" },
-  { id: "4", query: "Tra sua Thai Nguyen", timestamp: "Hom qua, 14:20" },
-  { id: "5", query: "Nha hang hai san", timestamp: "3 ngay truoc" },
-  { id: "6", query: "Quan bar rooftop", timestamp: "5 ngay truoc" }
-];
+import { places, type Place } from "@/lib/mock-data";
+import { fetchPlaces } from "@/lib/discovery-api";
+import { clearSearchHistory, getSearchHistory, getViewedPlaceIds, removeSearchHistory, type SearchHistoryItem } from "@/lib/user-state";
 
 export default function SearchHistoryPage() {
   const router = useRouter();
-  const [history, setHistory] = useState(initialHistory);
+  const [history, setHistory] = useState<SearchHistoryItem[]>([]);
+  const [recentPlaces, setRecentPlaces] = useState<Place[]>(places.slice(0, 4));
+
+  useEffect(() => {
+    let cancelled = false;
+    setHistory(getSearchHistory());
+
+    fetchPlaces({ limit: 50 }).then((result) => {
+      if (cancelled) return;
+      const source = result.apiOk && result.items.length > 0 ? result.items : places;
+      const viewedIds = getViewedPlaceIds();
+      const next = source.filter((item) => viewedIds.includes(item.id)).sort((a, b) => viewedIds.indexOf(a.id) - viewedIds.indexOf(b.id));
+      setRecentPlaces(next.length > 0 ? next.slice(0, 4) : source.slice(0, 4));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="app-shell min-h-screen pb-20">
@@ -30,7 +41,10 @@ export default function SearchHistoryPage() {
           <h1 className="flex-1 text-base font-bold text-foreground">Lich su tim kiem</h1>
           {history.length > 0 && (
             <button
-              onClick={() => setHistory([])}
+              onClick={() => {
+                clearSearchHistory();
+                setHistory([]);
+              }}
               className="flex items-center gap-1 text-xs font-medium text-destructive transition-colors hover:text-destructive/80"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -51,7 +65,7 @@ export default function SearchHistoryPage() {
                   <span className="text-xs text-muted-foreground">{item.timestamp}</span>
                 </button>
                 <button
-                  onClick={() => setHistory((current) => current.filter((entry) => entry.id !== item.id))}
+                  onClick={() => setHistory(removeSearchHistory(item.id))}
                   className="rounded-full p-1.5 text-muted-foreground opacity-0 transition-all hover:bg-border group-hover:opacity-100"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -72,7 +86,7 @@ export default function SearchHistoryPage() {
         <div className="mt-8">
           <h2 className="mb-3 text-sm font-bold text-foreground">Da xem gan day</h2>
           <div className="space-y-3">
-            {places.slice(0, 4).map((place) => (
+            {recentPlaces.map((place) => (
               <PlaceCard key={place.id} place={place} variant="horizontal" />
             ))}
           </div>

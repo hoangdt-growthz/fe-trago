@@ -1,15 +1,72 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Send, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/bottom-nav";
 import PlaceCard from "@/components/place-card";
-import { aiSuggestions } from "@/lib/mock-data";
+import { aiSuggestions, places, type Place } from "@/lib/mock-data";
+import { fetchPlaces } from "@/lib/discovery-api";
+import { addSearchHistory } from "@/lib/user-state";
+
+type SuggestionResult = {
+  id: string;
+  query: string;
+  reason: string;
+  results: Place[];
+};
 
 export default function AISuggestPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [catalog, setCatalog] = useState<Place[]>(places);
+  const [threads, setThreads] = useState<SuggestionResult[]>(aiSuggestions);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchPlaces({ limit: 50 }).then((result) => {
+      if (!cancelled && result.apiOk && result.items.length > 0) {
+        setCatalog(result.items);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function buildSuggestion(input: string): SuggestionResult {
+    const normalized = input.toLowerCase();
+    const scored = catalog
+      .map((place) => {
+        const haystack = `${place.name} ${place.address} ${place.category} ${place.tags.join(" ")}`.toLowerCase();
+        let score = 0;
+        for (const token of normalized.split(/\s+/)) {
+          if (token && haystack.includes(token)) score += 1;
+        }
+        score += place.rating;
+        return { place, score };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((item) => item.place);
+
+    return {
+      id: `${Date.now()}`,
+      query: input,
+      reason: scored.length > 0 ? "TraGo uu tien cac dia diem co danh gia tot va lien quan den nhu cau ban vua nhap." : "Chua tim thay ket qua sat nghia. Thu mo rong tu khoa tim kiem.",
+      results: scored
+    };
+  }
+
+  function onSubmit() {
+    const value = query.trim();
+    if (!value) return;
+    addSearchHistory(value);
+    setThreads((current) => [buildSuggestion(value), ...current]);
+    setQuery("");
+  }
 
   return (
     <div className="app-shell min-h-screen pb-20">
@@ -28,10 +85,16 @@ export default function AISuggestPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  onSubmit();
+                }
+              }}
               placeholder="Ban muon di dau, lam gi?"
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
-            <button className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <button onClick={onSubmit} className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <Send className="h-4 w-4" />
             </button>
           </div>
@@ -50,7 +113,7 @@ export default function AISuggestPage() {
       </div>
 
       <div className="mx-auto max-w-lg px-4 pt-4">
-        {aiSuggestions.map((suggestion, index) => (
+        {threads.map((suggestion, index) => (
           <div
             key={suggestion.id}
             className="mb-5 animate-fade-up"

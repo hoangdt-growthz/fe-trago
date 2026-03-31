@@ -1,15 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Heart, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/bottom-nav";
 import PlaceCard from "@/components/place-card";
-import { places } from "@/lib/mock-data";
+import { places, type Place } from "@/lib/mock-data";
+import { fetchPlaces } from "@/lib/discovery-api";
+import { getSavedPlaceIds, setSavedPlaceIds } from "@/lib/user-state";
 
 export default function SavedPage() {
   const router = useRouter();
-  const [savedPlaces, setSavedPlaces] = useState(places.slice(0, 5));
+  const [savedPlaces, setSavedPlaces] = useState<Place[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      const savedIds = getSavedPlaceIds();
+      const result = await fetchPlaces({ limit: 50 });
+      const source = result.apiOk && result.items.length > 0 ? result.items : places;
+      const next = source.filter((item) => savedIds.includes(item.id));
+      if (!cancelled) setSavedPlaces(next);
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="app-shell min-h-screen pb-20">
@@ -30,7 +49,13 @@ export default function SavedPage() {
               <div key={place.id} className="relative">
                 <PlaceCard place={place} variant="horizontal" />
                 <button
-                  onClick={() => setSavedPlaces((current) => current.filter((item) => item.id !== place.id))}
+                  onClick={() =>
+                    setSavedPlaces((current) => {
+                      const next = current.filter((item) => item.id !== place.id);
+                      setSavedPlaceIds(next.map((item) => item.id));
+                      return next;
+                    })
+                  }
                   className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card/90 text-destructive shadow-sm transition-colors hover:bg-destructive/10"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
